@@ -68,7 +68,7 @@ const TooltipT = ({
 
   return (
     <div
-      className={`w-fit h-fit bg-white absolute transition-opacity -translate-y-1/2 border border-solid border-gray-400 rounded-2xl shadow-md overflow-hidden hover:!opacity-100 ${
+      className={`w-fit h-fit bg-white absolute transition-opacity -translate-y-1/2 border border-solid border-gray-400 rounded-2xl shadow-md overflow-hidden pointer-events-none ${
         position === "mid" ? "-translate-x-1/2" : ""
       } ${className}`}
       style={{
@@ -87,6 +87,11 @@ interface BarChartProps {
   data: ChartData<"bar">;
   tooltipBody?: (title: string) => JSX.Element;
   topLabel?: boolean;
+  topLabelCallback?: (
+    label: string,
+    labelDataset: string,
+    value: number
+  ) => number | string;
   className?: string;
   tooltipClass?: string;
 }
@@ -95,6 +100,7 @@ const BarChart = ({
   data,
   tooltipBody,
   topLabel = false,
+  topLabelCallback,
   className,
   tooltipClass,
 }: BarChartProps) => {
@@ -162,6 +168,9 @@ const BarChart = ({
     },
     scales: {
       x: {
+        border: {
+          dash: [4],
+        },
         stacked: true,
         ticks: {
           font: {
@@ -200,19 +209,33 @@ const BarChart = ({
         scales: { x },
         data,
       } = chart;
+      ctx.textAlign = "left";
+      ctx.font = "bold 16px";
+      ctx.fillStyle = "#000";
+
       data.datasets.forEach((dataset, dI) => {
-        const pad = dI === 0 ? 60 : -10;
+        const pad = dI === 0 ? 80 : -10;
         dataset.data.forEach((v, i) => {
-          let yPosition = chart.getDatasetMeta(dI).data[i].y;
-          if (Number(v) > 0) yPosition = yPosition - 5;
-          else yPosition = yPosition + 15;
-          ctx.textAlign = "left";
-          ctx.font = "bold 16px";
-          ctx.fillStyle = "#000";
+          const value = Number(v);
+          const barElement: any = chart.getDatasetMeta(dI).data[i];
+          let yPosition = barElement.y - 5;
+          if (value < 0) yPosition = yPosition - barElement.height;
+
+          let label = value.toString();
+
+          if (topLabelCallback && dataset.label && data.labels) {
+            label = topLabelCallback(
+              data.labels[i] as string,
+              dataset.label,
+              value
+            ).toString();
+          }
+
           ctx.fillText(
-            v?.toString() || "",
+            label || "",
             x.getPixelForValue(i) - pad,
-            yPosition
+            yPosition,
+            80
           );
         });
       });

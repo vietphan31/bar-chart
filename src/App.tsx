@@ -2,25 +2,31 @@ import BarChart from "./components/BarChart/BarChart";
 import { ChartData } from "chart.js";
 
 function App() {
+  const dumData = {
+    monthlyIncome: 10_000,
+    saving: 2_500,
+    expenditures: 6_300,
+  };
+
   const labels = ["Savings", "Expresses", "Recuring"];
 
   const data: ChartData<"bar"> = {
     labels: labels,
     datasets: [
       {
-        label: "Dataset 1",
-        data: [2500, -4000, -5000],
+        label: "user_1",
+        data: [2_500, -4_000, -5_000],
         backgroundColor: ["#D4FAFC", "#D4FAFC", "#D4FAFC"],
         stack: "Stack 0",
-        categoryPercentage: 0.5,
+        categoryPercentage: 0.6,
         barPercentage: 1,
       },
       {
-        label: "Dataset 2",
-        data: [2700, -3500, -4500],
+        label: "user_2",
+        data: [2_700, -3_500, -4_800],
         backgroundColor: ["#5D9C59", "#3C486B", "#3C486B"],
         stack: "Stack 1",
-        categoryPercentage: 0.5,
+        categoryPercentage: 0.6,
         barPercentage: 1,
       },
     ],
@@ -31,9 +37,13 @@ function App() {
       <div className="w-[1000px] mx-auto max-w-full">
         <BarChart
           data={data}
-          topLabel
           className="w-[800px]"
-          tooltipClass=""
+          topLabel
+          topLabelCallback={(label, labelDataset, value) => {
+            return `${Math.round(
+              (value / dumData.monthlyIncome) * 100
+            )}%\n(${value})`;
+          }}
           tooltipBody={(title) => (
             <div className="w-[300px] h-fit">
               <p>Great! Your customer save 25% of his monthly income</p>
